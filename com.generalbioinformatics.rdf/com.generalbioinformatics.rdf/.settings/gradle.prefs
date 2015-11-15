@@ -1,0 +1,12 @@
+{
+  "1.0": {
+    "project_path": ":com.generalbioinformatics.rdf",
+    "project_dir": "/home/christopher/workspace/general-sparql-cy3/com.generalbioinformatics.rdf/com.generalbioinformatics.rdf",
+    "connection_project_dir": "/home/christopher/workspace/general-sparql-cy3/com.generalbioinformatics.rdf",
+    "connection_gradle_user_home": null,
+    "connection_gradle_distribution": "GRADLE_DISTRIBUTION(WRAPPER)",
+    "connection_java_home": null,
+    "connection_jvm_arguments": "",
+    "connection_arguments": ""
+  }
+}

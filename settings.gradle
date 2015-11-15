@@ -1,0 +1,4 @@
+rootProject.name = 'general-sparql-cy3'
+include ':com.generalbioinformatics.rdf'
+include ':com.generalbioinformatics.rdf.gui'
+include ':helixsoft-commons'

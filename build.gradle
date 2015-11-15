@@ -1,0 +1,108 @@
+apply plugin: 'java'
+
+def localRepo = 'file://' + new File(System.getProperty('user.home'), 'prg/bundle-repository').absolutePath
+
+repositories {
+
+	// NOTE: invoke gradle with --offline option to use cache.
+	
+    maven {
+        url "http://repo.maven.apache.org/maven2/"
+    }
+        maven {
+		url "http://code.cytoscape.org/nexus/content/repositories/releases/"
+    }
+
+	ivy {
+		name "local_bundle_repository"
+		url localRepo
+		layout "pattern", {
+	        ivy "[organisation]/[module]/[revision]/ivy.xml"
+	        artifact "[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+	    }
+	}
+
+}
+
+configurations {
+    
+    // new configuration - just the embedded dependencies
+    releaseJars.exclude module: 'openrdf-sesame-all'
+
+    // make releaseJars also part of compilation classpath
+    compile {
+    	extendsFrom releaseJars
+    }
+}
+
+dependencies {
+    testCompile (
+    		'junit:junit:4+'
+    )
+    releaseJars (
+    		'jdom:jdom:1.1',
+    		 //'com.generalbioinformatics:com.generalbioinformatics.rdf.gui:1.0+',
+    		 //'com.generalbioinformatics:com.generalbioinformatics.rdf:1.0+',
+    		 //'jgoodies-forms:jgoodies-forms:1.2+',
+    		'de.sciss:jsyntaxpane:1.0.0',
+    		 //'jsyntaxpane:jsyntaxpane:0.9+',
+    		 //'nl.helixsoft:nl.helixsoft.util:1.0.1',
+    		 //'nl.helixsoft:nl.helixsoft.gui:1.0.1',
+    		'org.apache.jena:jena-arq:2.12.0',
+    		// 'org.apache.jena:jena-arq:2.12.+',
+    		'commons-codec:commons-codec:1.5',
+    		// 'org.apache:commons-codec:1.5+',
+    		'org.osgi:osgi.core:6.0.0',    		
+    		// 'org.apache.felix:org.osgi.core:1.4+',
+			'com.googlecode.guava-osgi:guava-osgi:11.0.1',
+			// 'com.googlecode.guava-osgi:guava-osgi:11.0.1',
+    )
+    compile (    		
+    		'org.cytoscape:app-api:3+',
+    		'org.cytoscape:swing-app-api:3+',
+    		 project(':com.generalbioinformatics.rdf'),
+    		 project(':helixsoft-commons')
+    )
+}
+
+sourceSets.main.java.srcDirs = ['src']
+sourceSets.main.resources.srcDirs = ['resources']
+sourceSets.test.java.srcDirs = ['test']
+
+version = '1.11.' + new Date().format('yyMMdd')
+
+jar {
+
+	// add the release jars as sub-jars
+    from configurations.releaseJars
+    
+    manifest {
+					
+		from( 'META-INF/MANIFEST.MF' ) {
+			eachEntry {
+				// exclude existing manifest entry
+				if (it.key == "Require-Bundle")
+					it.exclude()
+					
+				// replace manifest entry with new value
+				if (it.key == 'Bundle-Version')
+					it.value = version
+			}
+		}
+
+		// set value of new manifest entry
+		attributes 'Bundle-Classpath': ".," + configurations.releaseJars.collect { File f -> f.getName() }.join(",")
+    }
+	
+}
+
+// copy the jar removing version info, 
+// for the benefit of symlinking to the cytoscape installed apps dir.
+task copyJar (type: Copy, dependsOn:jar) {
+	from "build/libs"
+	into "."
+	include "${project.name}-${version}.jar"
+	rename { String fileName ->
+		fileName.replace("$version", "LATEST")
+	  }
+}
